@@ -1,0 +1,2 @@
+Mailer Theme
+Theme used for editing mail templates
