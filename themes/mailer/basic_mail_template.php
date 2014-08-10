@@ -5,7 +5,9 @@
  * SF
  */
 defined('C5_EXECUTE') or die("Access Denied.");
+global $inMail;
  ?>
+<?php if( !$inMail ) { ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
@@ -20,6 +22,7 @@ defined('C5_EXECUTE') or die("Access Denied.");
     <link rel="stylesheet" type="text/css" href="<?php echo $this->getStyleSheet('css/basic_mail_template.css')?>" />
 
 </head>
+<?php } ?>
 
 <body bgcolor="#FFFFFF">
 
@@ -135,6 +138,8 @@ defined('C5_EXECUTE') or die("Access Denied.");
     </tr>
 </table><!-- /FOOTER -->
 
+<?php if( !$inMail ) { ?>
 <?php  Loader::element('footer_required'); ?>
 </body>
 </html>
+<?php } ?>
