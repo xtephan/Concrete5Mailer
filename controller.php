@@ -112,15 +112,17 @@ class C5mailerPackage extends Package {
      */
     public function installSinglePages( $pkg ){
 
+        //install the email options page
+        $path = '/dashboard/system/mail/options';
+        $pkg = Package::getByHandle('c5mailer');
+        $p = SinglePage::add($path, $pkg);
+        if (is_object($p) && $p->isError() !== false) {
+            $p->update(array('cName' => t('Email Options')));
+        }
+
         //this array will hold all the custom dashboard page paths and their icons.
         //see the setupDashboardIcons method for more info
         /*$dashboardIcons = array();
-
-        $path = '/dashboard/vimeo_website/share';
-        $p = SinglePage::add($path, $pkg);
-        if (is_object($p) && $p->isError() !== false) {
-            $p->update(array('cName' => t('Vimeo Share')));
-        }
 
         // Set the icon for the /dashboard/vimeo_website/share page
         $dashboardIcons[$path] = 'icon-share';

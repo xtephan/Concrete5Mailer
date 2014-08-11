@@ -19,6 +19,7 @@ global $inMail;
     <title>Edit System Page</title>
     <?php  Loader::element('header_required'); ?>
 
+    <link rel="stylesheet" type="text/css" href="<?php echo $this->getStyleSheet('typography.css')?>" />
     <link rel="stylesheet" type="text/css" href="<?php echo $this->getStyleSheet('css/basic_mail_template.css')?>" />
 
 </head>
@@ -35,8 +36,8 @@ global $inMail;
             <div class="content">
                 <table bgcolor="#999999">
                     <tr>
-                        <td><img src="http://placehold.it/200x50/" /></td>
-                        <td align="right"><h6 class="collapse">Basic</h6></td>
+                        <td><?php $a = new Area("Top Left Image"); $a->display($c);?></td>
+                        <td align="right"><h6 class="collapse"><?php $a = new Area("Top Right Name"); $a->display($c);?></h6></td>
                     </tr>
                 </table>
             </div>
@@ -57,44 +58,97 @@ global $inMail;
                 <table>
                     <tr>
                         <td>
-                            <h3>Hi, Elijah Baily</h3>
-                            <p class="lead">Phasellus dictum sapien a neque luctus cursus. Pellentesque sem dolor, fringilla et pharetra vitae.</p>
-                            <p>Phasellus dictum sapien a neque luctus cursus. Pellentesque sem dolor, fringilla et pharetra vitae. consequat vel lacus. Sed iaculis pulvinar ligula, ornare fringilla ante viverra et. In hac habitasse platea dictumst. Donec vel orci mi, eu congue justo. Integer eget odio est, eget malesuada lorem. Aenean sed tellus dui, vitae viverra risus. Nullam massa sapien, pulvinar eleifend fringilla id, convallis eget nisi. Mauris a sagittis dui. Pellentesque non lacinia mi. Fusce sit amet libero sit amet erat venenatis sollicitudin vitae vel eros. Cras nunc sapien, interdum sit amet porttitor ut, congue quis urna.</p>
-                            <!-- Callout Panel -->
-                            <p class="callout">
-                                Phasellus dictum sapien a neque luctus cursus. Pellentesque sem dolor, fringilla et pharetra vitae. <a href="#">Click it! &raquo;</a>
-                            </p><!-- /Callout Panel -->
 
+                            <?php
+                            $a = new Area("Main");
+                            $a->display($c);
+                            ?>
+
+                            <?php
+                            //get the vars
+                            $pkg = Package::getByHandle("c5mailer");
+                            $co = new Config();
+                            $co->setPackageObject($pkg);
+
+                            $contact_phone = $co->get('contact_phone');
+                            $contact_email= $co->get('contact_email');
+
+                            $social_facebook = $co->get('social_facebook');
+                            $social_twitter = $co->get('social_twitter');
+                            $social_gplus = $co->get('social_gplus');
+                            ?>
+
+                            <?php if(
+                                !empty($contact_phone) ||
+                                !empty($contact_email) ||
+                                !empty($social_facebook) ||
+                                !empty($social_twitter) ||
+                                !empty($social_gplus)
+                            ) {
+                            ?>
                             <!-- social & contact -->
                             <table class="social" width="100%">
                                 <tr>
                                     <td>
 
+                                        <?php if(
+                                            !empty($social_facebook) ||
+                                            !empty($social_twitter) ||
+                                            !empty($social_gplus)
+                                        ) {
+                                            ?>
                                         <!-- column 1 -->
                                         <table align="left" class="column">
                                             <tr>
                                                 <td>
 
                                                     <h5 class="">Connect with Us:</h5>
-                                                    <p class=""><a href="#" class="soc-btn fb">Facebook</a> <a href="#" class="soc-btn tw">Twitter</a> <a href="#" class="soc-btn gp">Google+</a></p>
+                                                    <p class="">
+
+                                                        <?php if( !empty($social_facebook) ) { ?>
+                                                            <a href="<?php echo $social_facebook ?>" class="soc-btn fb">Facebook</a>
+                                                        <?php } ?>
+
+                                                        <?php if( !empty($social_twitter) ) { ?>
+                                                            <a href="<?php echo $social_twitter ?>" class="soc-btn tw">Twitter</a>
+                                                        <?php } ?>
+
+                                                        <?php if( !empty($social_gplus) ) { ?>
+                                                            <a href="<?php echo $social_gplus ?>" class="soc-btn gp">Google+</a>
+                                                        <?php } ?>
+                                                    </p>
 
 
                                                 </td>
                                             </tr>
                                         </table><!-- /column 1 -->
+                                        <?php } ?>
 
+                                        <?php if(
+                                            !empty($contact_phone) ||
+                                            !empty($contact_email)
+                                        ) {
+                                            ?>
                                         <!-- column 2 -->
                                         <table align="left" class="column">
                                             <tr>
                                                 <td>
 
                                                     <h5 class="">Contact Info:</h5>
-                                                    <p>Phone: <strong>408.341.0600</strong><br/>
-                                                        Email: <strong><a href="emailto:hseldon@trantor.com">hseldon@trantor.com</a></strong></p>
+                                                    <p>
+                                                        <?php if( !empty($contact_phone) ) { ?>
+                                                            Phone: <strong><?php echo $contact_phone ?></strong><br/>
+                                                        <?php } ?>
+
+                                                        <?php if( !empty($contact_email) ) { ?>
+                                                            Email: <strong><a href="emailto:<?php echo $contact_email ?>"><?php echo $contact_email ?></a></strong>
+                                                        <?php } ?>
+                                                    </p>
 
                                                 </td>
                                             </tr>
                                         </table><!-- /column 2 -->
+                                        <?php } ?>
 
                                         <span class="clear"></span>
 
@@ -105,38 +159,13 @@ global $inMail;
                         </td>
                     </tr>
                 </table>
+                <?php } ?>
             </div><!-- /content -->
 
         </td>
         <td></td>
     </tr>
 </table><!-- /BODY -->
-
-<!-- FOOTER -->
-<table class="footer-wrap">
-    <tr>
-        <td></td>
-        <td class="container">
-
-            <!-- content -->
-            <div class="content">
-                <table>
-                    <tr>
-                        <td align="center">
-                            <p>
-                                <a href="#">Terms</a> |
-                                <a href="#">Privacy</a> |
-                                <a href="#"><unsubscribe>Unsubscribe</unsubscribe></a>
-                            </p>
-                        </td>
-                    </tr>
-                </table>
-            </div><!-- /content -->
-
-        </td>
-        <td></td>
-    </tr>
-</table><!-- /FOOTER -->
 
 <?php if( !$inMail ) { ?>
 <?php  Loader::element('footer_required'); ?>

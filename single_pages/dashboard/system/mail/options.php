@@ -1,0 +1,88 @@
+<?php
+/**
+ * options.php
+ * (C) stefanfodor @ 2014
+ * SF
+ */
+defined('C5_EXECUTE') or die("Access Denied.");
+
+//Set the header and dashboard theme
+$title=t('Email Configuration');
+echo Loader::helper('concrete/dashboard')->getDashboardPaneHeaderWrapper($title, false, 'span10 offset1', false);
+?>
+
+    <form method="post" class="form-horizontal" action="<?php  echo $this->action('update_config') ?>">
+        <div class="ccm-pane-body">
+            <?php  echo $this->controller->token->output('update_email_config')?>
+
+            <fieldset>
+                <legend style="margin-bottom: 0px"><?php  echo t('Sender')?></legend>
+
+                <div class="control-group">
+                    <label class="control-label" for="SENDER_NAME">Name</label>
+                    <div class="controls">
+                        <input type="text" name="SENDER_NAME" value="<?php echo $sender_name ?>" style="height: 20px; width: 250px;"/>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="SENDER_ADDRESS">Email Address</label>
+                    <div class="controls">
+                        <input type="text" name="SENDER_ADDRESS" value="<?php echo $sender_address ?>" style="height: 20px; width: 250px;"/>
+                    </div>
+                </div>
+
+            </fieldset>
+
+            <fieldset>
+                <legend style="margin-bottom: 0px"><?php  echo t('Contact Info')?></legend>
+
+                <div class="control-group">
+                    <label class="control-label" for="CONTACT_PHONE">Phone number:</label>
+                    <div class="controls">
+                        <input type="text" name="CONTACT_PHONE" value="<?php echo $contact_phone ?>" style="height: 20px; width: 250px;"/>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="CONTACT_EMAIL">Email Address:</label>
+                    <div class="controls">
+                        <input type="text" name="CONTACT_EMAIL" value="<?php echo $contact_email ?>" style="height: 20px; width: 250px;"/>
+                    </div>
+                </div>
+
+            </fieldset>
+
+            <fieldset>
+                <legend style="margin-bottom: 0px"><?php  echo t('Social Links')?></legend>
+
+                <div class="control-group">
+                    <label class="control-label" for="SOCIAL_FACEBOOK">Facebook:</label>
+                    <div class="controls">
+                        <input type="text" name="SOCIAL_FACEBOOK" value="<?php echo $social_facebook ?>" style="height: 20px; width: 250px;"/>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="SOCIAL_TWITTER">Twitter:</label>
+                    <div class="controls">
+                        <input type="text" name="SOCIAL_TWITTER" value="<?php echo $social_twitter ?>" style="height: 20px; width: 250px;"/>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label class="control-label" for="SOCIAL_GPLUS">Google Plus:</label>
+                    <div class="controls">
+                        <input type="text" name="SOCIAL_GPLUS" value="<?php echo $social_gplus ?>" style="height: 20px; width: 250px;"/>
+                    </div>
+                </div>
+
+            </fieldset>
+
+        </div>
+        <div class="ccm-pane-footer">
+            <input type="submit" class="btn ccm-button-v2 primary ccm-button-v2-right" value="<?php echo t('Save'); ?>">
+        </div>
+    </form>
+
+<?php  echo Loader::helper('concrete/dashboard')->getDashboardPaneFooterWrapper(false);?>

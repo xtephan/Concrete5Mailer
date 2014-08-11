@@ -11,9 +11,54 @@ defined('C5_EXECUTE') or die(_("Access Denied."));
  */
 class MailerHelper {
 
-    protected $c = null;
+    /**
+     * C5 Page holding the mail template
+     * @var null
+     */
+    protected $template_page = null;
 
+    /**
+     * PHP SMTP Mailer
+     * @var null|PHPMailer
+     */
     protected $mail = null;
+
+    /**
+     * Replacements
+     * @var null
+     */
+    protected $replacements = null;
+
+    /**
+     * HTML body
+     * @var null
+     */
+    protected $html_body = null;
+
+    /**
+     * Text body
+     * @var null
+     */
+    protected $text_body = null;
+
+    /**
+     * Remember is sender is set
+     * @var bool
+     */
+    private $has_sender = false;
+
+    /**
+     * Remembers if receiver is set
+     * @var bool
+     */
+    private $has_receiver = false;
+
+    /**
+     * remembers if subject is set
+     * @var bool
+     */
+    private $has_subject = false;
+
 
     /**
      * Constructor
@@ -26,8 +71,23 @@ class MailerHelper {
 
         //set up email settings
         $this->mail->isSMTP();
-        $this->mail->Host = "127.0.0.1";
-        $this->mail->Port = "1025";
+
+        //get C5 mail settings
+        $smtp_server = Config::get('MAIL_SEND_METHOD_SMTP_SERVER');
+        $smtp_user =Config::get('MAIL_SEND_METHOD_SMTP_USERNAME');
+        $smtp_pass = Config::get('MAIL_SEND_METHOD_SMTP_PASSWORD');
+        $smtp_port = Config::get('MAIL_SEND_METHOD_SMTP_PORT');
+
+        //server and port
+        $this->mail->Host = $smtp_server;
+        $this->mail->Port = $smtp_port;
+
+        //user
+        if( !empty($smtp_user) ) {
+            $this->mail->SMTPAuth   = true;
+            $this->mail->Username   = $smtp_user;
+            $this->mail->Password   = $smtp_pass;
+        }
 
     }
 
@@ -35,6 +95,141 @@ class MailerHelper {
      * Sends the mail
      */
     public function send() {
+
+        //no receiver, no continue
+        if( !$this->has_receiver ) {
+            throw new Exception('Receiver is required!');
+        }
+
+        //no template, no continue
+        if( !$this->template_page ) {
+            throw new Exception('Template mail missing!');
+        }
+
+        //autofill subject if needed
+        if( !$this->has_subject ) {
+            $this->mail->Subject = $this->template_page->getCollectionDescription();
+        }
+
+        //autofill sender
+        if( !$this->has_sender ) {
+
+            $pkg = Package::getByHandle("c5mailer");
+            $co = new Config();
+            $co->setPackageObject($pkg);
+
+            $sender_address = $co->get('sender_address');
+            $sender_name = $co->get('sender_name');
+
+            $this->mail->setFrom( $sender_address, $sender_name );
+            $this->mail->addReplyTo( $sender_address, $sender_name );
+
+        }
+
+        //generate the body
+        $this->generateHTMLBody();
+
+        //fix images servername
+        $this->fixImages();
+
+        //make var replacements
+        if( !empty($this->replacements) ){
+            $this->makeReplacements();
+        }
+
+        //generate the body
+        $this->generateTextBody();
+
+        //attach the body to the email
+        $this->mail->IsHTML(true);
+        $this->mail->Body = $this->html_body;
+        $this->mail->AltBody = $this->text_body;
+
+        //and finally, ship the sucker
+        if(!$this->mail->send()) {
+            throw new Exception("Mailer Error: " . $this->mail->ErrorInfo);
+        }
+
+    }
+
+
+    /**
+     * Generates the text body based on the html one
+     */
+    private function generateTextBody() {
+        $this->text_body = $this->strip_html_tags($this->html_body);
+        $this->trim_whitespaces();
+    }
+
+    /**
+     * Trims whitespaces from text body
+     */
+    private function trim_whitespaces() {
+        $this->text_body = preg_replace('/\s+/', ' ', $this->text_body);
+    }
+
+    /**
+     * Remove HTML tags, including invisible text such as style and
+     * script code, and embedded objects.  Add line breaks around
+     * block-level tags to prevent word joining after tag removal.
+     */
+    private function strip_html_tags( $text ){
+
+        $text = preg_replace(
+            array(
+                // Remove invisible content
+                '@<head[^>]*?>.*?</head>@siu',
+                '@<style[^>]*?>.*?</style>@siu',
+                '@<script[^>]*?.*?</script>@siu',
+                '@<object[^>]*?.*?</object>@siu',
+                '@<embed[^>]*?.*?</embed>@siu',
+                '@<applet[^>]*?.*?</applet>@siu',
+                '@<noframes[^>]*?.*?</noframes>@siu',
+                '@<noscript[^>]*?.*?</noscript>@siu',
+                '@<noembed[^>]*?.*?</noembed>@siu',
+                // Add line breaks before and after blocks
+                '@</?((address)|(blockquote)|(center)|(del))@iu',
+                '@</?((div)|(h[1-9])|(ins)|(isindex)|(p)|(pre))@iu',
+                '@</?((dir)|(dl)|(dt)|(dd)|(li)|(menu)|(ol)|(ul))@iu',
+                '@</?((table)|(th)|(td)|(caption))@iu',
+                '@</?((form)|(button)|(fieldset)|(legend)|(input))@iu',
+                '@</?((label)|(select)|(optgroup)|(option)|(textarea))@iu',
+                '@</?((frameset)|(frame)|(iframe))@iu',
+            ),
+            array(
+                ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+                "\n\$0", "\n\$0", "\n\$0", "\n\$0", "\n\$0", "\n\$0",
+                "\n\$0", "\n\$0",
+            ),
+            $text );
+        return strip_tags( $text );
+    }
+
+
+    /**
+     * Make var replacements in html body
+     */
+    private function makeReplacements() {
+
+        foreach ($this->replacements as $variable => $replacement) {
+            $this->html_body = str_replace("%".$variable."%", utf8_decode($replacement), $this->html_body);
+        }
+
+    }
+
+    /**
+     * Fixes path of images
+     */
+    private function fixImages() {
+        $regex = "-(<img[^>]+src\s*=\s*['\"])((?:(?!'|\"|http://).)*)(['\"][^>]*>)-i";
+        $domain = "http://".$_SERVER['HTTP_HOST'];
+        $this->html_body = preg_replace($regex, "$1".$domain."$2$3", $this->html_body);
+    }
+
+    /**
+     * Generates the HTML body
+     */
+    private function generateHTMLBody() {
 
         //single to the page to skip uneeded parts
         global $inMail;
@@ -46,16 +241,16 @@ class MailerHelper {
         //render the template
         ob_start();
         $_v = View::getInstance();
-        $_v->render( $this->c );
+        $_v->render( $this->template_page );
         $html_content = ob_get_clean();
 
         //restore the c
         $c = $oldC;
-
+        
         //css style
         ob_start();
         $pagetheme = PageTheme::getByHandle('mailer');
-        $pagetheme->outputStyleSheet('css/basic_mail_template.css');
+        $pagetheme->outputStyleSheet(sprintf('css/%s.css', $this->template_page->getCollectionTypeHandle()));
         $css_styles = ob_get_clean();
 
         //merge the CSS and the Body
@@ -64,17 +259,15 @@ class MailerHelper {
 
         $emo->setHTML($html_content);
         $emo->setCSS($css_styles);
-        $html_content = $emo->emogrify();
+        $this->html_body = $emo->emogrify();
+    }
 
-        //we want html, please
-        $this->mail->IsHTML(true);
-        $this->mail->Body = $html_content;
-
-        //ship the sucker
-        if(!$this->mail->send()) {
-            throw new Exception("Mailer Error: " . $this->mail->ErrorInfo);
-        }
-
+    /**
+     * Sets replacements
+     * @param $rep
+     */
+    public function setReplacements( $rep ) {
+        $this->replacements = $rep;
     }
 
     /**
@@ -83,6 +276,7 @@ class MailerHelper {
      */
     public function setSubject( $sbj ) {
         $this->mail->Subject = $sbj;
+        $this->has_subject = true;
     }
 
     /**
@@ -100,6 +294,7 @@ class MailerHelper {
      */
     public function setReceiver( $address, $name = '' ) {
         $this->mail->addAddress( $address, $name );
+        $this->has_receiver = true;
     }
 
     /**
@@ -112,6 +307,8 @@ class MailerHelper {
         $this->mail->setFrom( $address, $name );
 
         $this->mail->addReplyTo( $address, $name );
+
+        $this->has_sender = true;
 
     }
 
@@ -151,7 +348,7 @@ class MailerHelper {
         }
 
         //save
-        $this->c = $template[0];
+        $this->template_page = $template[0];
     }
 
     /**
@@ -165,7 +362,7 @@ class MailerHelper {
             throw new Exception('MailerHelper::setPage expects a Page as parameter');
         }
 
-        $this->c = $page;
+        $this->template_page = $page;
     }
 
 
@@ -180,9 +377,9 @@ class MailerHelper {
             throw new Exception('MailerHelper::setPageID expects a integer as parameter');
         }
 
-        $this->c = Page::getByID( $cid );
+        $this->template_page = Page::getByID( $cid );
 
-        if( $this->c->isError() ) {
+        if( $this->template_page->isError() ) {
             throw new Exception('Page with ID ' . $cid . ' not found!');
         }
     }
