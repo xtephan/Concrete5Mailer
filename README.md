@@ -18,6 +18,34 @@ Installation
 
 Download in Packages folder and install from dashboard.
 
+Usage
+--------------
+
+
+    //Load the Mailer helper
+    $mailer = Loader::helper('mailer','c5mailer');
+
+    //Specify the Page name to be used as template
+    $mailer->setMailTemplate( 'Demo Basic Template' );
+
+    //optional: add the replacements
+    $mailer->setReplacements(array(
+            'username' => 'John Doe',
+            'another_var' => 'Lorem Ipsum',
+    ));
+
+    //optional: set the sender. Fallback: the global defined one will be used
+    $mailer->setSender( 'system@c5.com', 'Auto Robots' );
+
+    //required: set the receiver
+    $mailer->setReceiver( 'john@doe.com', 'John Doe' );
+
+    //optional: set the subject. Fallback: the page description will be used
+    $mailer->setSubject( 'Testing Email' );
+
+    //send the email
+    $mailer->send();
+
 License
 ----
 

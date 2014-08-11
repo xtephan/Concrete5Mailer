@@ -246,7 +246,7 @@ class MailerHelper {
 
         //restore the c
         $c = $oldC;
-        
+
         //css style
         ob_start();
         $pagetheme = PageTheme::getByHandle('mailer');
