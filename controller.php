@@ -83,7 +83,7 @@ class C5mailerPackage extends Package {
         $pkg = parent::install();
 
         //install single pages
-        //$this->installSinglePages( $pkg );
+        $this->installSinglePages( $pkg );
 
         //install theme
         $this->installThemes( $pkg );
