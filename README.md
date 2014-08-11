@@ -21,29 +21,62 @@ Download in Packages folder and install from dashboard.
 Usage
 --------------
 
+Load the Mailer helper
 
     //Load the Mailer helper
     $mailer = Loader::helper('mailer','c5mailer');
 
+Specify which template to use
+
     //Specify the Page name to be used as template
     $mailer->setMailTemplate( 'Demo Basic Template' );
 
-    //optional: add the replacements
+    //Or: Use the collection ID, if known
+    $mailer->setPageID( 139 );
+
+    //Or: Use the collection
+    $mailer->setPage( $page );
+
+Optional: Set the sender. Fallback: the global defined one will be used
+
+    $mailer->setSender( 'system@c5.com', 'Auto Robots' );
+    $mailer->setSender( 'system@c5.com' ); //name is optional
+
+Optional: Set reply to
+
+    $mailer->setReplyTo( 'real-person@c5.com', 'Real Human' );
+    $mailer->setReplyTo( 'real-person@c5.com' ); //name is optional
+
+Required: Set the receiver
+
+    $mailer->setReceiver( 'john@doe.com', 'John Doe' );
+    $mailer->setReceiver( 'john@doe.com' ); //name is optional
+
+Optional: set the subject. Fallback: the page description will be used
+
+    $mailer->setSubject( 'Catchy Email Subject' );
+
+Optional: add the replacements array
+
     $mailer->setReplacements(array(
             'username' => 'John Doe',
             'another_var' => 'Lorem Ipsum',
     ));
 
-    //optional: set the sender. Fallback: the global defined one will be used
-    $mailer->setSender( 'system@c5.com', 'Auto Robots' );
+Optional: add attachments
 
-    //required: set the receiver
-    $mailer->setReceiver( 'john@doe.com', 'John Doe' );
+    //By File Path
+    $mailer->attachFileByPath( '/tmp/Comp_2.jpg' );
+    $mailer->attachFileByPath( '/tmp/Comp_2.jpg', 'nice_name.jpg' ); //name is optional
 
-    //optional: set the subject. Fallback: the page description will be used
-    $mailer->setSubject( 'Testing Email' );
+    //And/Or Using a Concrete5 File
+    $mailer->attachFile( File::getByID(3) );
 
-    //send the email
+    //And/Or Using a Concrete5 FileID
+    $mailer->attachFileByID( 4 );
+
+Send the email
+
     $mailer->send();
 
 License

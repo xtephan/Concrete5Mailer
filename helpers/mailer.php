@@ -42,6 +42,12 @@ class MailerHelper {
     protected $text_body = null;
 
     /**
+     * List of attachments
+     * @var null
+     */
+    protected $attachments = null;
+
+    /**
      * Remember is sender is set
      * @var bool
      */
@@ -137,6 +143,11 @@ class MailerHelper {
             $this->makeReplacements();
         }
 
+        //add attachments
+        if( !empty($this->attachments) ){
+            $this->addAttachments();
+        }
+
         //generate the body
         $this->generateTextBody();
 
@@ -152,6 +163,19 @@ class MailerHelper {
 
     }
 
+    /**
+     * Sets the list of attachments to the email
+     */
+    private function addAttachments() {
+
+        foreach( $this->attachments as $thisAttachment ) {
+            $this->mail->addAttachment(
+                $thisAttachment[0], //path
+                $thisAttachment[1]  //name
+            );
+        }
+
+    }
 
     /**
      * Generates the text body based on the html one
@@ -349,6 +373,57 @@ class MailerHelper {
 
         //save
         $this->template_page = $template[0];
+    }
+
+    /**
+     * Attaches a file to the email
+     * @param $path
+     * @param string $name
+     */
+    public function attachFileByPath( $path, $name = '' ) {
+        $this->attachments[] = array(
+            $path, $name
+        );
+    }
+
+    /**
+     * Attach a C5 file to the mail
+     * @param $file
+     * @throws Exception
+     */
+    public function attachFile( $file ) {
+
+        if( !($file instanceof File) ) {
+            throw new Exception('MailerHelper::attachFile expects File as parameter!');
+        }
+
+        $fv = $file->getRecentVersion();
+
+        $this->attachments[] = array(
+            $fv->getPath(), $fv->getFileName()
+        );
+
+    }
+
+    /**
+     * Attaches a C5 file by ID
+     * @param $fid
+     * @throws Exception
+     */
+    public function attachFileByID( $fid ) {
+
+        if( !is_numeric($fid) ) {
+            throw new Exception('MailerHelper::attachFileByID expects integer as parameter!');
+        }
+
+        $file = File::getByID($fid);
+
+        if( $file->isError() ) {
+            throw new Exception('File for attachment not found!');
+        }
+
+
+        $this->attachFile( $file );
     }
 
     /**
