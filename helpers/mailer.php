@@ -237,6 +237,7 @@ class MailerHelper {
 
         foreach ($this->replacements as $variable => $replacement) {
             $this->html_body = str_replace("%".$variable."%", utf8_decode($replacement), $this->html_body);
+            $this->mail->Subject = str_replace("%".$variable."%", utf8_decode($replacement), $this->mail->Subject );
         }
 
     }

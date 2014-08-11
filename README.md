@@ -56,6 +56,9 @@ Optional: set the subject. Fallback: the page description will be used
 
     $mailer->setSubject( 'Catchy Email Subject' );
 
+    //email var can be used in subject as well
+    $mailer->setSubject( 'Catchy Email Subject For %username%' );
+
 Optional: add the replacements array
 
     $mailer->setReplacements(array(
