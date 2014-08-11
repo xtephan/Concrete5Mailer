@@ -29,6 +29,11 @@ class C5mailerPackage extends Package {
     protected $pkgVersion = '1.0';
 
     /**
+     * @var int file ID of the demo top logo
+     */
+    private $top_logo_fid = 0;
+
+    /**
      * Package description
      * @return string
      */
@@ -91,8 +96,14 @@ class C5mailerPackage extends Package {
         //install page types
         $this->installPageTypes( $pkg );
 
+        //install assets
+        $this->installAssets( $pkg );
+
         //install pages
         $this->installPages( $pkg );
+
+        //set default configuration
+        $this->installConfig( $pkg );
     }
 
     /**
@@ -112,23 +123,48 @@ class C5mailerPackage extends Package {
      */
     public function installSinglePages( $pkg ){
 
+        //this array will hold all the custom dashboard page paths and their icons.
+        //see the setupDashboardIcons method for more info
+        $dashboardIcons = array();
+
+        //SMTP settings
+        $path = '/dashboard/mail/smtp_settings';
+        $pkg = Package::getByHandle('c5mailer');
+        $p = SinglePage::add($path, $pkg);
+        if (is_object($p) && $p->isError() !== false) {
+            $p->update(array('cName' => t('SMTP Configuration')));
+            $dashboardIcons[$path] = 'icon-wrench';
+        }
+
         //install the email options page
-        $path = '/dashboard/system/mail/options';
+        $path = '/dashboard/mail/options';
         $pkg = Package::getByHandle('c5mailer');
         $p = SinglePage::add($path, $pkg);
         if (is_object($p) && $p->isError() !== false) {
             $p->update(array('cName' => t('Email Options')));
+            $dashboardIcons[$path] = 'icon-cog';
         }
 
-        //this array will hold all the custom dashboard page paths and their icons.
-        //see the setupDashboardIcons method for more info
-        /*$dashboardIcons = array();
+        //install the email options page
+        $path = '/dashboard/mail/mail_templates';
+        $pkg = Package::getByHandle('c5mailer');
+        $p = SinglePage::add($path, $pkg);
+        if (is_object($p) && $p->isError() !== false) {
+            $p->update(array('cName' => t('Email Templates')));
+            $dashboardIcons[$path] = 'icon-envelope';
+        }
 
-        // Set the icon for the /dashboard/vimeo_website/share page
-        $dashboardIcons[$path] = 'icon-share';
+        //install the email options page
+        $path = '/dashboard/mail/mail_scaffolds';
+        $pkg = Package::getByHandle('c5mailer');
+        $p = SinglePage::add($path, $pkg);
+        if (is_object($p) && $p->isError() !== false) {
+            $p->update(array('cName' => t('Email Scaffolds')));
+            $dashboardIcons[$path] = 'icon-file';
+        }
 
         //setup the icons set for custom dashboard single pages
-        $this->setupDashboardIcons($dashboardIcons);*/
+        $this->setupDashboardIcons($dashboardIcons);
     }
 
     /**
@@ -169,20 +205,18 @@ class C5mailerPackage extends Package {
 
         $query = 'UPDATE PageTypes SET ctIsInternal = 1 WHERE ctID = ?';
 
-        $db->execute(
-            $query,
-            array( $container->getCollectionTypeID() )
+        $ctIDs = array(
+            $container->getCollectionTypeID(),
+            $basic->getCollectionTypeID(),
+            $hero->getCollectionTypeID()
         );
 
-        $db->execute(
-            $query,
-            array( $basic->getCollectionTypeID() )
-        );
-
-        $db->execute(
-            $query,
-            array( $hero->getCollectionTypeID() )
-        );
+        foreach( $ctIDs as $thisCTID ) {
+            $db->execute(
+                $query,
+                array( $thisCTID )
+            );
+        }
 
     }
 
@@ -206,18 +240,13 @@ class C5mailerPackage extends Package {
         );
         $mail_template_container = $home->add($container, $data);
 
-        //exclude from pagelist and nav
-        $mail_template_container->setAttribute('exclude_page_list', 1);
-        $mail_template_container->setAttribute('exclude_nav', 1);
-
-        //transform the container in a system page
-        Loader::db()->execute('update Pages set cParentID = 0 AND cIsSystemPage = 1 where cID = ?', array($mail_template_container->getCollectionID()));
+        $mail_template_container->moveToRoot();
 
         /*
          * Demo Content
          */
         $basic = CollectionType::getByHandle("basic_mail_template");
-        //cretae
+        //create
         $data = array(
             'cHandle' => "demo-basic-template",
             'cName' => "Demo Basic Template",
@@ -225,22 +254,82 @@ class C5mailerPackage extends Package {
         );
         $demo_template = $mail_template_container->add($basic, $data);
 
-        //do not list
-        $demo_template->setAttribute('exclude_page_list', 1);
-        $demo_template->setAttribute('exclude_nav', 1);
 
-        //add demo content
-        $bt = BlockType::getByHandle('content');
-        $data = array(
-            'content' => 'Hi there, %username%!<br/><br/>This is an <strong>HTML</strong> email.<br/>Have a nice day!'
+        /*
+         * Demo Content add blocks
+         */
+        $bt_content = BlockType::getByHandle('content');
+        $bt_html = BlockType::getByHandle('html');
+        $bt_image = BlockType::getByHandle('image');
+
+        $main_data = array(
+            'content' => '<h3>Hi, %username%</h3><p class="lead">Phasellus %another_var% dictum sapien a neque luctus cursus. Pellentesque sem dolor, fringilla et pharetra vitae.</p><p>Phasellus dictum sapien a neque luctus cursus. Pellentesque sem dolor, fringilla et pharetra vitae. consequat vel lacus. Sed iaculis pulvinar ligula, ornare fringilla ante viverra et. In hac habitasse platea dictumst. Donec vel orci mi, eu congue justo. Integer eget odio est, eget malesuada lorem. Aenean sed tellus dui, vitae viverra risus. Nullam massa sapien, pulvinar eleifend fringilla id, convallis eget nisi. Mauris a sagittis dui. Pellentesque non lacinia mi. Fusce sit amet libero sit amet erat venenatis sollicitudin vitae vel eros. Cras nunc sapien, interdum sit amet porttitor ut, congue quis urna.</p><p class="callout">Phasellus dictum sapien a neque luctus cursus. Pellentesque sem dolor, fringilla et pharetra vitae. <a href="#">Click it! »</a></p>'
         );
 
-        $data_txt = array(
-            'content' => 'Hi there, %username%!\n\nThis is an plain-text email. Have a nice day!'
+        $top_right_data = array(
+            'content' => 'Acme Aps'
         );
 
-        $demo_template->addBlock($bt, 'Main', $data);
-        $demo_template->addBlock($bt, 'MainTxt', $data_txt);
+        $top_left_data = array(
+            'fID' => $this->top_logo_fid
+        );
+
+        $demo_template->addBlock($bt_content, 'Main', $main_data);
+        $demo_template->addBlock($bt_html, 'Top Right Name', $top_right_data);
+        $demo_template->addBlock($bt_image, 'Top Left Image', $top_left_data);
+
+        /*
+         * Move templates to system pages
+         */
+        $db =  Loader::db();
+        $query = 'update Pages set cIsSystemPage = 1 where cID = ?';
+
+        $db->execute($query, array($mail_template_container->getCollectionID()));
+        $db->execute($query, array($demo_template->getCollectionID()));
+
+    }
+
+    /**
+     * Installs files and assets
+     */
+    private function installAssets( $pkg ) {
+
+        //There is an issue in C5 that throws an error when saving a file to set
+        //Fileset for email images
+        //$fs = FileSet::createAndGetSet('Email Images', FileSet::TYPE_PUBLIC);
+
+        //insert acme logo to file manager
+        $top_logo_path = $pkg->getPackagePath() . '/assets/acme_logo.png';
+
+        Loader::library("file/importer");
+        $fi = new FileImporter();
+
+        $top_logo = $fi->import($top_logo_path, 'acme_logo.png');
+
+        $this->top_logo_fid = $top_logo->getFileID();
+
+        //add top logo to fileset
+        //$fs->addFileToSet( $top_logo );
+    }
+
+    /**
+     * Sets up default config
+     * @param $pkg
+     */
+    public function installConfig( $pkg ) {
+
+        $co = new Config();
+        $co->setPackageObject($pkg);
+
+        $co->save('sender_name', 'Johnny Bravo' );
+        $co->save('sender_address', 'johnny@bravo.com' );
+
+        $co->save('contact_phone', '813.298.123' );
+        $co->save('contact_email', 'hello@yahoo.com' );
+
+        $co->save('social_facebook', 'https://facebook.com/' );
+        $co->save('social_twitter', 'https://twitter.com/' );
+        $co->save('social_gplus', 'http://weknowmemes.com/wp-content/uploads/2011/10/meanwhile-on-google-plus.jpg' );
 
     }
 
