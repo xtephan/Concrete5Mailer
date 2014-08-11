@@ -136,6 +136,15 @@ class C5mailerPackage extends Package {
             $dashboardIcons[$path] = 'icon-wrench';
         }
 
+        //SMTP test settings
+        $path = '/dashboard/mail/smtp_settings/test_settings/';
+        $pkg = Package::getByHandle('c5mailer');
+        $p = SinglePage::add($path, $pkg);
+        if (is_object($p) && $p->isError() !== false) {
+            $p->update(array('cName' => t('SMTP Test Settings')));
+            $dashboardIcons[$path] = 'icon-wrench';
+        }
+
         //install the email options page
         $path = '/dashboard/mail/options';
         $pkg = Package::getByHandle('c5mailer');
