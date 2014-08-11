@@ -47,10 +47,23 @@ class DashboardMailOptionsController extends DashboardBaseController {
         $this->set( 'social_twitter', $co->get('social_twitter') );
         $this->set( 'social_gplus', $co->get('social_gplus') );
 
+        //figure out if we have custom vars
+        $custom_vars = array();
+
+        $custom_keys = $co->get('custom_keys');
+        if( !empty($custom_keys) ) {
+            $cka = explode('+',$custom_keys);
+            foreach( $cka as $thisCustomKey ) {
+                $value = $co->get( $thisCustomKey );
+                $custom_vars[ $thisCustomKey ] = $value;
+            }
+        }
+
+        $this->set( 'custom_vars', $custom_vars );
     }
 
     /**
-     * Task that updates Authy Configuration
+     * Task that updates Configuration
      */
     public function update_config() {
 
@@ -72,6 +85,27 @@ class DashboardMailOptionsController extends DashboardBaseController {
                 $co->save('social_facebook', $this->post("SOCIAL_FACEBOOK") );
                 $co->save('social_twitter', $this->post("SOCIAL_TWITTER"));
                 $co->save('social_gplus', $this->post("SOCIAL_GPLUS"));
+
+                //new variables?
+                $custom_keys = $this->post('custom_key');
+                $custom_values = $this->post('custom_value');
+
+                $custom_keys_good = array();
+
+                if( !empty($custom_keys) ) {
+
+                    $custom_no = count( $custom_keys );
+
+                    for( $i = 0; $i<$custom_no; $i++ ) {
+                        if( !empty($custom_keys[$i]) ) {
+                            $co->save($custom_keys[$i], $custom_values[$i]);
+                            $custom_keys_good[] = $custom_keys[$i];
+                        }
+                    }
+
+                }
+
+                $co->save('custom_keys', implode('+',$custom_keys_good));
 
                 $this->redirect( "/dashboard/mail/options/success" );
             }

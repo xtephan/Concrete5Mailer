@@ -10,7 +10,11 @@ defined('C5_EXECUTE') or die("Access Denied.");
 $title=t('Email Configuration');
 echo Loader::helper('concrete/dashboard')->getDashboardPaneHeaderWrapper($title, false, 'span10 offset1', false);
 ?>
-
+<style>
+    .controls-2-in {
+        margin-left: 20px!important;
+    }
+</style>
     <form method="post" class="form-horizontal" action="<?php  echo $this->action('update_config') ?>">
         <div class="ccm-pane-body">
             <?php  echo $this->controller->token->output('update_email_config')?>
@@ -79,10 +83,46 @@ echo Loader::helper('concrete/dashboard')->getDashboardPaneHeaderWrapper($title,
 
             </fieldset>
 
+
+            <fieldset id="my-vars">
+                <legend style="margin-bottom: 0px"><?php  echo t('Your Variables')?></legend>
+                <?php foreach( $custom_vars as $custom_key=>$custom_value) { ?>
+                    <div class="control-group">
+                        <div class="controls controls-row controls-2-in">
+                            <input class="span2" type="text" name="custom_key[]" placeholder="key" value="<?php echo $custom_key ?>">
+                            <input class="span3" type="text" name="custom_value[]" placeholder="value" value="<?php echo $custom_value ?>">
+                        </div>
+                    </div>
+                <?php } ?>
+            </fieldset>
+
         </div>
         <div class="ccm-pane-footer">
+            <a href="javascript:void(0)" class="btn" id="new-var-trigger"><?php echo t('Add new email variable')?></a>
             <input type="submit" class="btn ccm-button-v2 primary ccm-button-v2-right" value="<?php echo t('Save'); ?>">
         </div>
     </form>
+
+<div class="control-group my-var-matrix" style="display: none;">
+    <div class="controls controls-row controls-2-in">
+        <input class="span2" type="text" name="custom_key[]" placeholder="key">
+        <input class="span3" type="text" name="custom_value[]" placeholder="value">
+    </div>
+</div>
+
+<script>
+$(function(){
+    $("#new-var-trigger").click(function(){
+
+        $clone = $(".my-var-matrix").clone();
+
+        $clone.removeClass("my-var-matrix");
+
+        $("#my-vars").append( $clone );
+        $clone.show();
+
+    });
+});
+</script>
 
 <?php  echo Loader::helper('concrete/dashboard')->getDashboardPaneFooterWrapper(false);?>

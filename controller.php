@@ -340,6 +340,10 @@ class C5mailerPackage extends Package {
         $co->save('social_twitter', 'https://twitter.com/' );
         $co->save('social_gplus', 'http://weknowmemes.com/wp-content/uploads/2011/10/meanwhile-on-google-plus.jpg' );
 
+        $co->save( 'example_var', 'Define your own variable here' );
+        $co->save( 'example_var2', 'You can have as many as you like' );
+        $co->save( 'custom_keys', 'example_var+example_var2' );
+
     }
 
     /**
