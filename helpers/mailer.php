@@ -181,54 +181,13 @@ class MailerHelper {
      * Generates the text body based on the html one
      */
     private function generateTextBody() {
-        $this->text_body = $this->strip_html_tags($this->html_body);
-        $this->trim_whitespaces();
+
+        Loader::library('3rdparty/html2text', 'c5mailer');
+
+        $converter = new Html2Text( $this->html_body );
+
+        $this->text_body = $converter->get_text();
     }
-
-    /**
-     * Trims whitespaces from text body
-     */
-    private function trim_whitespaces() {
-        $this->text_body = preg_replace('/\s+/', ' ', $this->text_body);
-    }
-
-    /**
-     * Remove HTML tags, including invisible text such as style and
-     * script code, and embedded objects.  Add line breaks around
-     * block-level tags to prevent word joining after tag removal.
-     */
-    private function strip_html_tags( $text ){
-
-        $text = preg_replace(
-            array(
-                // Remove invisible content
-                '@<head[^>]*?>.*?</head>@siu',
-                '@<style[^>]*?>.*?</style>@siu',
-                '@<script[^>]*?.*?</script>@siu',
-                '@<object[^>]*?.*?</object>@siu',
-                '@<embed[^>]*?.*?</embed>@siu',
-                '@<applet[^>]*?.*?</applet>@siu',
-                '@<noframes[^>]*?.*?</noframes>@siu',
-                '@<noscript[^>]*?.*?</noscript>@siu',
-                '@<noembed[^>]*?.*?</noembed>@siu',
-                // Add line breaks before and after blocks
-                '@</?((address)|(blockquote)|(center)|(del))@iu',
-                '@</?((div)|(h[1-9])|(ins)|(isindex)|(p)|(pre))@iu',
-                '@</?((dir)|(dl)|(dt)|(dd)|(li)|(menu)|(ol)|(ul))@iu',
-                '@</?((table)|(th)|(td)|(caption))@iu',
-                '@</?((form)|(button)|(fieldset)|(legend)|(input))@iu',
-                '@</?((label)|(select)|(optgroup)|(option)|(textarea))@iu',
-                '@</?((frameset)|(frame)|(iframe))@iu',
-            ),
-            array(
-                ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-                "\n\$0", "\n\$0", "\n\$0", "\n\$0", "\n\$0", "\n\$0",
-                "\n\$0", "\n\$0",
-            ),
-            $text );
-        return strip_tags( $text );
-    }
-
 
     /**
      * Make var replacements in html body
