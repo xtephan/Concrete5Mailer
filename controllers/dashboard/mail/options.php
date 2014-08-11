@@ -6,7 +6,7 @@
  */
 defined('C5_EXECUTE') or die("Access Denied.");
 
-class DashboardSystemMailOptionsController extends DashboardBaseController {
+class DashboardMailOptionsController extends DashboardBaseController {
 
 
     /**
@@ -73,10 +73,10 @@ class DashboardSystemMailOptionsController extends DashboardBaseController {
                 $co->save('social_twitter', $this->post("SOCIAL_TWITTER"));
                 $co->save('social_gplus', $this->post("SOCIAL_GPLUS"));
 
-                $this->redirect( "/dashboard/system/mail/options/success" );
+                $this->redirect( "/dashboard/mail/options/success" );
             }
         } else {
-            $this->redirect( "/dashboard/system/mail/options/token_error" );
+            $this->redirect( "/dashboard/mail/options/token_error" );
         }
     }
 
