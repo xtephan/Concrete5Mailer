@@ -36,7 +36,7 @@ $sec_token = $this->controller->token->generate('template_edit');
             <td>
                 <?php
                 $edit_link = '/index.php?cID=' . $thisTemplate['id'];
-                $test_link = $this->action('test_template') . $thisTemplate['id'] . '/' . $sec_token;
+                $test_link = $this->action('test_template') . $thisTemplate['id'];
                 $remove_link = $this->action('remove_template') . $thisTemplate['id'] . '/' . $sec_token;
                 ?>
                 <a href="<?php echo $edit_link ?>" class="btn btn-primary" target="_blank"><i class="icon-edit icon-white"></i> Edit</a>

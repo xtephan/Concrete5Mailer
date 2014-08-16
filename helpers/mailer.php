@@ -212,30 +212,72 @@ class MailerHelper {
 
     /**
      * Generates the HTML body
+     *
+     * This function is responsible with doing some crazy black magic
+     * and transform a collection object in HTML, without affecting the existing view instance.
+     *
+     * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+     * !!!!! WARNING: BELOW LIES MADNESS !!!!
+     * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
      */
-    private function generateHTMLBody() {
+    public function generateHTMLBody() {
 
         //single to the page to skip uneeded parts
         global $inMail;
         $inMail = true;
 
-        //backup the c
-        $oldC = $c;
+        //create a new instance, and set it the collection
+        $_v = new View();
+        $_v->setCollectionObject( $this->template_page );
 
-        //render the template
+        $use_package_theme = false;
+
+        //using the mailer theme from the package
+        $theme = PageTheme::getByHandle('mailer');
+        $page_theme_files = $theme->getFilesInTheme();
+
+        foreach( $page_theme_files as $thisFile ) {
+            /* @var $thisFile PageThemeFile */
+
+            if( $thisFile->getFilename() == $this->template_page->getCollectionTypeHandle() . '.php' ) {
+                $use_package_theme = true;
+            }
+        }
+
+        $_v->setTheme( $theme );
+
+        //render the view and buffer the result into a variable
         ob_start();
-        $_v = View::getInstance();
-        $_v->render( $this->template_page );
+        if( $use_package_theme ) {
+
+            $_v->render( $this->template_page->getCollectionTypeHandle() );
+
+        } else {
+
+            global $ct_key;
+            $ct_key = $this->template_page->getCollectionTypeHandle();
+
+            $_v->render( 'default' );
+
+        }
+
         $html_content = ob_get_clean();
 
-        //restore the c
-        $c = $oldC;
-
         //css style
-        ob_start();
-        $pagetheme = PageTheme::getByHandle('mailer');
-        $pagetheme->outputStyleSheet(sprintf('css/%s.css', $this->template_page->getCollectionTypeHandle()));
-        $css_styles = ob_get_clean();
+        if( $use_package_theme ) {
+
+            ob_start();
+            $theme->outputStyleSheet(sprintf('css/%s.css', $this->template_page->getCollectionTypeHandle()));
+            $css_styles = ob_get_clean();
+
+        } else  {
+
+            $css_file = DIR_BASE . DIRECTORY_SEPARATOR . 'css' . DIRECTORY_SEPARATOR . $this->template_page->getCollectionTypeHandle() . '.css';
+            if( file_exists($css_file) ) {
+                $css_styles = file_get_contents( $css_file );
+            }
+
+        }
 
         //merge the CSS and the Body
         Loader::library( '3rdparty/emogrifier', 'c5mailer' );
@@ -244,6 +286,29 @@ class MailerHelper {
         $emo->setHTML($html_content);
         $emo->setCSS($css_styles);
         $this->html_body = $emo->emogrify();
+    }
+
+    /**
+     * Extracts variables included in the email template
+     * @param bool $include_subject
+     * @return array
+     */
+    public function extractContentVariables( $include_subject = true ) {
+
+        //regular expression that matches the variables in content
+        $reg_ex = "/%[a-zA-Z0-9_]+%/";
+
+        $searchable_text = $include_subject ? $this->template_page->getCollectionDescription() . $this->html_body : $this->html_body;
+
+        //find it in body
+        preg_match_all($reg_ex, $searchable_text, $matches);
+
+        //remove the % from the beginning and and
+        array_walk($matches[0], function( &$str, $key ){
+                $str = substr($str,1, -1);
+            });
+
+        return $matches[0];
     }
 
     /**
@@ -418,5 +483,15 @@ class MailerHelper {
             throw new Exception('Page with ID ' . $cid . ' not found!');
         }
     }
+
+    /**
+     * Gets HTML Body
+     * @return null
+     */
+    public function getHtmlBody()
+    {
+        return $this->html_body;
+    }
+
 
 }
