@@ -47,6 +47,14 @@ class DashboardMailMailScaffoldsController extends DashboardBaseController {
             $this->set("message", t('Email scaffold installed successfully!'));
         }
 
+        if( $msg == "remove_ok" ) {
+            $this->set("message", t('Email scaffold removed successfully!'));
+        }
+
+        if( $msg == "remove_fail" ) {
+            $this->set("message", t('Fail to remove email scaffold! Please make sure no page is using it and clean up the trash and the page versions.'));
+        }
+
         //error msg
         if( $msg == "token_error" ) {
             $this->error = t('Invalid security token!');
@@ -118,6 +126,27 @@ class DashboardMailMailScaffoldsController extends DashboardBaseController {
 
         $this->set('awaiting_install', $awaiting_install);
 
+    }
+
+    /**
+     * Removes a scaffold
+     * @param $scaffold_key
+     * @param $token
+     */
+    public function remove_scaffold( $scaffold_key, $token ) {
+
+        if( $this->token->validate( 'scaffold_edit', $token ) ) {
+
+            //remove
+            $ct = CollectionType::getByHandle( $scaffold_key );
+
+            $ct->delete();
+
+            $this->redirect( "/dashboard/mail/mail_scaffolds/remove_ok" );
+
+        } else {
+            $this->redirect( "/dashboard/mail/mail_scaffolds/token_error" );
+        }
     }
 
     /**
