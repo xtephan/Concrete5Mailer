@@ -36,12 +36,21 @@ class DashboardMailMailScaffoldsController extends DashboardBaseController {
     /**
      * View task, get a list of installed and uninstalled scaffolds
      */
-    public function view() {
+    public function view( $msg = null ) {
 
         //scaffold regex
         $re_filename = "/[a-zA-Z0-9_]+_mail_template\\.php/i";
         $re_ct = "/[a-zA-Z0-9_]+_mail_template/i";
         $suffix_size = strlen('_mail_template.php');
+
+        if( $msg == "install_ok" ) {
+            $this->set("message", t('Email scaffold installed successfully!'));
+        }
+
+        //error msg
+        if( $msg == "token_error" ) {
+            $this->error = t('Invalid security token!');
+        }
 
         /*
          * Installed
@@ -95,7 +104,7 @@ class DashboardMailMailScaffoldsController extends DashboardBaseController {
             $scaffold_key = substr( $thisAvailablePageType, 0, 0-$suffix_size );
 
             //is it already installed?
-            if( $installed_scaffolds[$scaffold_key] ) {
+            if( $installed_scaffolds[$scaffold_key.'_mail_template'] ) {
                 continue;
             }
 
@@ -110,6 +119,41 @@ class DashboardMailMailScaffoldsController extends DashboardBaseController {
         $this->set('awaiting_install', $awaiting_install);
 
     }
+
+    /**
+     * Installs a scaffold
+     * @param $scaffold_key
+     * @param $token
+     */
+    public function install_scaffold( $scaffold_key, $token ) {
+
+        if( $this->token->validate( 'scaffold_edit', $token ) ) {
+
+            $txt_helper = Loader::helper('text');
+            /* @var $txt_helper TextHelper */
+
+            //install
+            $new_ct = CollectionType::add(
+                array(
+                    'ctHandle' => $scaffold_key . '_mail_template',
+                    'ctName' => $txt_helper->unhandle( $scaffold_key . '_mail_template' )
+                )
+                , $this->mailer_pkg
+            );
+
+            //move to internals
+            Loader::db()->execute(
+                'UPDATE PageTypes SET ctIsInternal = 1 WHERE ctID = ?',
+                array( $new_ct->getCollectionTypeID() )
+            );
+
+            $this->redirect( "/dashboard/mail/mail_scaffolds/install_ok" );
+
+        } else {
+            $this->redirect( "/dashboard/mail/mail_scaffolds/token_error" );
+        }
+    }
+
 
     /**
      * Finds all usages of a scaffold

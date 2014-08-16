@@ -9,12 +9,14 @@ defined('C5_EXECUTE') or die("Access Denied.");
 //Set the header and dashboard theme
 $title=t('Email Scaffolds');
 echo Loader::helper('concrete/dashboard')->getDashboardPaneHeaderWrapper($title, false, 'span10 offset1', false);
+
+$sec_token = $this->controller->token->generate('scaffold_edit');
 ?>
 <div class="ccm-pane-body">
 
 <h3>Installed Scaffolds</h3>
 <?php if( empty($installed_scaffolds) ) { ?>
-    <p>You have no installed templates.</p>
+    <p>You have no installed scaffolds.</p>
 <?php } else { ?>
 
     <table class="table table-striped table-bordered">
@@ -50,7 +52,7 @@ echo Loader::helper('concrete/dashboard')->getDashboardPaneHeaderWrapper($title,
                         if( !empty($thisScaffold['used_on']) ) {
                             $additional_classes .= 'disabled';
                         } else {
-                            $remove_link = $this->action('remove_scaffold') . '/' . $thisScaffoldHandle;
+                            $remove_link = $this->action('remove_scaffold') . $thisScaffoldHandle . '/' . $sec_token;
                         }
 
                         ?>
@@ -68,7 +70,7 @@ echo Loader::helper('concrete/dashboard')->getDashboardPaneHeaderWrapper($title,
 
 <h3>Awaiting Installation</h3>
 <?php if( empty($awaiting_install) ) { ?>
-    <p>You have no installed templates.</p>
+    <p>You have no scaffolds awaiting installation.</p>
 <?php } else { ?>
 
     <table class="table table-striped table-bordered">
@@ -88,7 +90,7 @@ echo Loader::helper('concrete/dashboard')->getDashboardPaneHeaderWrapper($title,
                     <td>
                         <?php
                         $additional_classes = '';
-                        $install_link = $this->action('install_scaffold') . '/' . $thisAwaiting;
+                        $install_link = $this->action('install_scaffold') . $thisAwaiting['handle'] . '/' . $sec_token;
                         ?>
                         <a href="<?php echo $install_link ?>" class="btn btn-success <?php echo $additional_classes ?>">
                             <i class="icon-folder-open icon-white"></i> Install
