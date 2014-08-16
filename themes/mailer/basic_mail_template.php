@@ -64,20 +64,6 @@ global $inMail;
                             $a->display($c);
                             ?>
 
-                            <?php
-                            //get the vars
-                            $pkg = Package::getByHandle("c5mailer");
-                            $co = new Config();
-                            $co->setPackageObject($pkg);
-
-                            $contact_phone = $co->get('contact_phone');
-                            $contact_email= $co->get('contact_email');
-
-                            $social_facebook = $co->get('social_facebook');
-                            $social_twitter = $co->get('social_twitter');
-                            $social_gplus = $co->get('social_gplus');
-                            ?>
-
                             <?php if(
                                 !empty($contact_phone) ||
                                 !empty($contact_email) ||
