@@ -200,15 +200,6 @@ class C5mailerPackage extends Package {
             , $pkg
         );
 
-        //hero image type
-        $hero = CollectionType::add(
-            array(
-                'ctHandle' => 'hero_mail_template',
-                'ctName' => t('Hero Image Mail Template')
-            )
-            , $pkg
-        );
-
         //all fine, now mark this as system
         $db = Loader::db();
 
@@ -216,8 +207,7 @@ class C5mailerPackage extends Package {
 
         $ctIDs = array(
             $container->getCollectionTypeID(),
-            $basic->getCollectionTypeID(),
-            $hero->getCollectionTypeID()
+            $basic->getCollectionTypeID()
         );
 
         foreach( $ctIDs as $thisCTID ) {

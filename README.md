@@ -5,12 +5,12 @@ Adds cool mailing functionality to Concrete5.
 
 __What is this__
 
-This a package made to made the developer's life a little bit easier and the customer a little bit happy.
+This a package made to made the developer's life a little bit easier and the customer a little bit happier.
 
 __What is this NOT__
 
-This a not an idiot-proof tool. Although it makes certain things easy, you can screw up one or two things with this.
-Nothing too dangerous. 
+This a not an idiot-proof tool. Although it makes certain things easy, you can screw up one or two things if you are not careful.
+Nothing too dangerous.
 
 Version
 ----
@@ -20,7 +20,7 @@ Version
 Requirements
 -----------
 
-* Concrete5 5.6.2 to Concrete5 5.7
+* Concrete5 5.6.1.2 to Concrete5 5.7
 
 Installation
 --------------
