@@ -37,6 +37,15 @@ class DashboardMailMailTemplatesController extends DashboardBaseController {
      */
     public function view( $msg = null ) {
 
+        if( $msg == "add_ok" ) {
+            $this->set("message", t('Email template added successfully!'));
+        }
+
+        //error msg
+        if( $msg == "token_error" ) {
+            $this->error = t('Invalid security token!');
+        }
+
         /*
          * Existing templates
          */
@@ -90,6 +99,34 @@ class DashboardMailMailTemplatesController extends DashboardBaseController {
         }
 
         $this->set('scaffolds', $scaffolds);
+    }
+
+
+    /**
+     * add a template
+     */
+    public function add_template() {
+
+        if( $this->token->validate( 'template_edit', $this->post('token') ) ) {
+
+            //add
+            $ct = CollectionType::getByHandle( $this->post('scaffold') );
+            $mail_template_container = Page::getByPath('/mail-templates');
+
+            //create
+            $data = array(
+                'cHandle' => Loader::helper('text')->handle( $this->post('template_name') ),
+                'cName' => $this->post('template_name'),
+                'pkgID' => $this->mailer_pkg->getPackageID(),
+            );
+            $new_template = $mail_template_container->add($ct, $data);
+
+
+            $this->redirect( "/dashboard/mail/mail_templates/add_ok" );
+
+        } else {
+            $this->redirect( "/dashboard/mail/mail_templates/token_error" );
+        }
     }
 
 } 
